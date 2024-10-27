@@ -72,7 +72,7 @@ class Server:
 
         return {
             "index": index,
-            "next_index": next_index if next_index < total_size else None,
+            "next_index": next_index + 1 if next_index < total_size else None,
             "page_size": len(page),
             "data": page
         }
