@@ -57,17 +57,17 @@ class Server:
 
         end = index + page_size
 
-        page = []
-        next_index = index
-        for i in range(index, end):
-            if i >= total_size:
-                break
-            page.append(indexed_data.get(valid_keys[i]))
-            next_index += 1
+        page = [
+            indexed_data.get(valid_keys[i])
+            for i in range(index, end)
+            if i < total_size
+        ]
+
+        next_index = end if end < total_size else None
 
         return {
             "index": index,
-            "next_index": next_index + 1 if next_index < total_size else None,
+            "next_index": next_index,
             "page_size": len(page),
             "data": page
         }
