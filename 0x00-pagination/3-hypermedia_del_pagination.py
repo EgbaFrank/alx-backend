@@ -57,11 +57,6 @@ class Server:
 
         end = index + page_size
 
-        page = [
-            indexed_data.get(valid_keys[i])
-            for i in range(index, end)
-            if i < total_size
-        ]
         page = []
         next_index = index
         for i in range(index, end):
