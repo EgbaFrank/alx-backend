@@ -42,22 +42,25 @@ class Server:
         """Deletion-resilient hypermedia data retrieval
         """
         indexed_data = self.indexed_dataset()
-        valid_keys = sorted(indexed_data.keys())
         total_size = len(indexed_data)
+        keys = list(indexed_data.keys())
 
         if index is None:
             index = 0
 
-        assert 0 < index <= total_size
+        assert 0 <= index <= total_size
 
         page = []
-        current_index = index
+        cur = index
 
-        while len(page) < page_size and current_index < total_size:
-            page.append(indexed_data.get(valid_keys[current_index]))
-            current_index += 1
+        for key in keys[index:]:
+            if len(page) < page_size:
+                page.append(indexed_data[key])
+                cur += 1
+            else:
+                break
 
-        next_index = current_index if current_index < total_size else None
+        next_index = cur if cur < total_size else None
 
         return {
             "index": index,
