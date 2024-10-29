@@ -48,9 +48,7 @@ class Server:
         if index is None:
             index = 0
 
-        print(index)
-
-        assert 0 <= index <= total_size
+        assert 0 < index <= total_size
 
         page = []
         current_index = index
