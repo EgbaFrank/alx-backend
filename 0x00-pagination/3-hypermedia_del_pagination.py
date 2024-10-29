@@ -43,24 +43,21 @@ class Server:
         """
         indexed_data = self.indexed_dataset()
         total_size = len(indexed_data)
-        keys = list(indexed_data.keys())
 
         if index is None:
             index = 0
 
-        assert 0 <= index <= total_size
+        assert 0 <= index < total_size
 
         page = []
-        cur = index
 
-        for key in keys[index:]:
-            if len(page) < page_size:
-                page.append(indexed_data[key])
-                cur += 1
-            else:
+        for key, val in indexed_data.items():
+            if key >= index and len(page) < page_size:
+                page.append(val)
+            if len(page) == page_size:
                 break
 
-        next_index = cur if cur < total_size else None
+        next_index = key + 1 if key < total_size - 1 else None
 
         return {
             "index": index,
