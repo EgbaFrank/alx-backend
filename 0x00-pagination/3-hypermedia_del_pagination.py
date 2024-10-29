@@ -4,8 +4,7 @@ Deletion-resilient hypermedia pagination
 """
 
 import csv
-import math
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 
 class Server:
@@ -49,17 +48,18 @@ class Server:
         if index is None:
             index = 0
 
-        assert 0 <= index < total_size
+        print(index)
 
-        end = index + page_size
+        assert 0 <= index <= total_size
 
-        page = [
-            indexed_data.get(valid_keys[i])
-            for i in range(index, end)
-            if i < total_size
-        ]
+        page = []
+        current_index = index
 
-        next_index = end if end < total_size else None
+        while len(page) < page_size and current_index < total_size:
+            page.append(indexed_data.get(valid_keys[current_index]))
+            current_index += 1
+
+        next_index = current_index if current_index < total_size else None
 
         return {
             "index": index,
