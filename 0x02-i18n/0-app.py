@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 
 @app.route("/", strict_slashes=False)
-def index():
+def index() -> str:
     """index page to say hello"""
     return render_template("0-index.html")
 
