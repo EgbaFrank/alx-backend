@@ -12,6 +12,7 @@ class Config:
     BABEL_DEFAULT_LOCALE = 'en'
     BABEL_DEFAULT_TIMEZONE = 'UTC'
 
+
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
     2: {"name": "Beyonce", "locale": "en", "timezone": "US/Central"},
@@ -19,10 +20,12 @@ users = {
     4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
 }
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
 babel = Babel(app)
+
 
 @babel.localeselector
 def get_locale() -> str:
@@ -34,11 +37,12 @@ def get_locale() -> str:
     if g.user and g.user['locale'] in app.config['LANGUAGES']:
         return g.user['locale']
 
-    header_locale = request.accept_languages.best_match(app.config['LANGUAGES'])
-    if header_locale:
-        return header_locale
+    h_locale = request.accept_languages.best_match(app.config['LANGUAGES'])
+    if h_locale:
+        return h_locale
 
     return app.config['BABEL_DEFAULT_LOCALE']
+
 
 def get_user() -> Optional[str]:
     """Retrieve user"""
@@ -48,15 +52,18 @@ def get_user() -> Optional[str]:
         return users.get(int(user))
     return None
 
+
 @app.before_request
 def before_request():
     """Function that runs before each request to find the user."""
     g.user = get_user()
 
+
 @app.route("/", strict_slashes=False)
 def index():
     """index page to say hello"""
     return render_template("6-index.html", username=g.user)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
