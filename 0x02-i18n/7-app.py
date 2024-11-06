@@ -3,8 +3,9 @@
 flask module with i18n and l10n
 """
 from flask import Flask, render_template, request, g
-from flask_babel import Babel
+from flask_babel import Babel, format_datetime
 from typing import Optional
+import pytz
 
 
 class Config:
@@ -46,6 +47,29 @@ def get_locale() -> str:
     return app.config['BABEL_DEFAULT_LOCALE']
 
 
+@babel.timezoneselector
+def get_timezone() -> str:
+    """Retrieve user preferred timezone"""
+    timezone = request.args.get('timezone')
+
+    if timezone:
+        try:
+            pytz.timezone(timezone)
+            return timezone
+        except pytz.exceptions.UnknownTimeZoneError:
+            pass
+
+    if g.user:
+        try:
+            timezone = g.user.get('timezone')
+            pytz.timezone(timezone)
+            return timezone
+        except pytz.exceptions.UnknownTimeZoneError:
+            pass
+
+    return app.config.get('BABEL_DEFAULT_TIMEZONE', 'UTC')
+
+
 def get_user() -> Optional[str]:
     """Retrieve user"""
     user = request.args.get('login_as')
@@ -67,7 +91,7 @@ def before_request() -> None:
 @app.route("/", strict_slashes=False)
 def index() -> str:
     """index page to say hello"""
-    return render_template("6-index.html", user=g.user)
+    return render_template("7-index.html", user=g.user)
 
 
 if __name__ == "__main__":
