@@ -64,7 +64,7 @@ def before_request() -> None:
 @app.route("/", strict_slashes=False)
 def index() -> str:
     """index page to say hello"""
-    return render_template("6-index.html", username=g.user)
+    return render_template("6-index.html", user=g.user)
 
 
 if __name__ == "__main__":
