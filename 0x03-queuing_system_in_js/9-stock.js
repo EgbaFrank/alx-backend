@@ -35,6 +35,13 @@ const listProducts = [
   },
 ];
 
+(async function populateRedis() {
+  const promises = listProducts.map((product) => setAsync(`item.${product.id}`, product.stock));
+
+  await Promise.all(promises);
+  console.log('Redis initialized with product stock');
+}());
+
 function getItemById(id) {
   for (const product of listProducts) {
     if (product.id === id) {
@@ -56,17 +63,27 @@ async function reserveStockById(itemId, stock) {
 }
 
 async function getCurrentReservedStockById(itemId) {
-  try {
-    const stock = await getAsync(`item.${itemId}`);
-    if (stock === null) {
-      console.warn(`No stock found for item.${itemId}`);
-      return 0;
-    }
-    return parseInt(stock, 10);
-  } catch (err) {
-    console.error(`Error retrieving stock for item.${itemId}: ${err}`);
-    throw err;
+  const quantity = await getAsync(`item.${itemId}`);
+  return quantity !== null ? parseInt(quantity, 10) : null;
+}
+
+async function getItem(itemId) {
+  const product = getItemById(parseInt(itemId, 10));
+
+  if (!product) {
+    return null;
   }
+
+  const productInfo = {
+    itemId: product.id,
+    itemName: product.name,
+    price: product.price,
+    initialAvailableQuantity: product.stock,
+  };
+  const quantity = await getCurrentReservedStockById(itemId);
+  productInfo.currentQuantity = quantity !== null ? quantity : 0;
+
+  return productInfo;
 }
 
 const getAllItems = () => listProducts.map((product) => ({
@@ -88,15 +105,11 @@ server.get('/list_products/:itemId', async (req, res) => {
       return res.status(400).json({ error: 'Invalid itemId' });
     }
 
-    const product = getItemById(parseInt(itemId, 10));
+    const product = await getItem(itemId);
 
     if (!product) {
       return res.status(404).json({ status: 'Product not found' });
     }
-
-    const quantity = await getCurrentReservedStockById(itemId);
-
-    product.currentQuantity = product.stock - (quantity !== null ? quantity : 0);
 
     res.status(200).json(product);
   } catch (err) {
@@ -123,11 +136,11 @@ server.get('/reserve_product/:itemId', async (req, res) => {
     }
     const quantity = await getCurrentReservedStockById(parsedItemId);
 
-    if (quantity >= product.stock) {
+    if (quantity <= 0) {
       return res.status(409).json({ status: 'Not enough stock available', itemId: parsedItemId });
     }
 
-    await reserveStockById(parsedItemId, 1);
+    await reserveStockById(parsedItemId, quantity - 1);
 
     res.json({ status: 'Reservation confirmed', itemId: parsedItemId });
   } catch (err) {
